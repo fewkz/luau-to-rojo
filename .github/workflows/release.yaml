@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+env:
+  DENO_DIR: .deno-cache # Arbitrary??
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - artifact-name: luau-to-rojo-win64
+            deno-target: x86_64-pc-windows-msvc
+          - artifact-name: luau-to-rojo-linux
+            deno-target: x86_64-unknown-linux-gnu
+          - artifact-name: luau-to-rojo-macos
+            deno-target: x86_64-apple-darwin
+          - artifact-name: luau-to-rojo-macos-aarch64
+            deno-target: aarch64-apple-darwin
+
+    name: Build (${{ matrix.artifact-name }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1.1.1
+        with:
+          deno-version: v1.x # Run with latest stable Deno.
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: deno-cache
+
+      - name: Compile executable
+        run: deno compile --allow-read --allow-write --target ${{ matrix.deno-target }} luau-to-rojo.ts
+
+      - name: Zip executable
+        shell: bash
+        run: |
+          mkdir -p staging
+          if [ "${{ matrix.deno-target }}" = "x86_64-pc-windows-msvc" ]; then
+            cp "luau-to-rojo.exe" staging
+          else
+            cp "luau-to-rojo" staging
+          fi
+          zip release.zip staging/*
+
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.2.3
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: release.zip
+
+      - name: Upload Binary to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: release.zip
+          asset_name: ${{ matrix.artifact-name }}.zip
+          asset_content_type: application/octet-stream
