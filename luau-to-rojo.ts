@@ -1,13 +1,13 @@
-import { Command } from "https://deno.land/x/cliffy@v0.25.2/mod.ts";
+import { Command } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import {
   emptyDirSync,
   walkSync,
-} from "https://deno.land/std@0.160.0/fs/mod.ts";
+} from "https://deno.land/std@0.185.0/fs/mod.ts";
 import {
   basename,
   dirname,
   relative,
-} from "https://deno.land/std@0.160.0/path/mod.ts";
+} from "https://deno.land/std@0.185.0/path/mod.ts";
 
 await new Command()
   .name("luau-to-rojo")
