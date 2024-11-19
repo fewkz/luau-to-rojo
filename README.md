@@ -1,3 +1,5 @@
+This is no longer really needed as Roblox added support for string-based require to Roblox. (I think)
+
 # luau-to-rojo
 
 Lets you convert a pure [Luau](https://luau-lang.org/) project into a
